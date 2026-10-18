@@ -9,17 +9,23 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::latest()->pending(20);
         return view('users.index', ['users' => $users]);
     }
 
     public function store(Request $request)
     {
-        $user = new User;
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = $request->password;
-        $user->save();
+        $valideted = $request->validate([
+            'name' => 'required|max:50',
+            'umail' => 'required|email|unique:users',
+            'password' => 'required|min:8',
+        ]);
+
+        User::create([
+            'name' => $valideted['name'],
+            'umail' => $valideted['umail'],
+            'password' => Hash::make($valideted['password'])
+        ]);
 
         return redirect('/users');
     }
